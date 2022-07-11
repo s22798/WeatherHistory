@@ -1,0 +1,61 @@
+﻿@page "/dashboard/{city}"
+@using WeatherHistory.Shared.DTOs
+@inject WeatherHistory.Client.Services.Repositories.ITemperatureService TemperatureService
+@inject NavigationManager navManager
+
+<h3>@City</h3>
+@if(Temperatures == null)
+{
+    <p>Loading...</p>
+}else
+{
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Temp</th>
+                <th>Feels like</th>
+                <th>Pressure</th>
+                <th>Humidity</th>
+                <th>Min temp</th>
+                <th>Max temp</th>
+                <th>Weather</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var temp in Temperatures)
+            {
+                <tr>
+                    <td>@temp.Date</td>
+                    <td>@temp.Temp</td>
+                    <td>@temp.Feels_like</td>
+                    <td>@temp.Pressure</td>
+                    <td>@temp.Humidity</td>
+                    <td>@temp.Temp_min</td>
+                    <td>@temp.Temp_max</td>
+                    <td>@temp.WeatherName</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div>
+        <button @onclick="@(()=> Return())">Return</button>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string City { get; set; }
+    private List<TemperatureDTO> Temperatures { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var data = await TemperatureService.GetTempsForCity(City);
+        Temperatures = data.ToList();
+    }
+    private void Return()
+    {
+        navManager.NavigateTo("/dashboard");
+    }
+}

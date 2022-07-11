@@ -1,0 +1,93 @@
+﻿@page "/dashboard"
+@inject WeatherHistory.Client.Services.Repositories.ILocationService LocationService
+@inject WeatherHistory.Client.Services.Repositories.ITemperatureService TemperatureService
+@using WeatherHistory.Shared.DTOs
+@inject IJSRuntime js
+@inject NavigationManager navManager
+
+
+<h3>Locations list</h3>
+<div style="float:right">
+     <button @onclick="@(()=> AddLocation())">Add location</button>
+</div>
+@if (Locations == null)
+{
+    <p><em>No companies in database, go add some!</em></p>
+}
+else
+{
+    <table id="tabela" class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Location name</th>
+                <th>Last temperature</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var loc in Locations)
+            {
+                <tr>
+                    <td><a href="https://wikipedia.org/wiki/@loc.Name">@loc.Name</a></td>
+                    <td>@loc.LastTemperature</td>
+                    <td>
+                        <button @onclick="@(()=> OpenDetails(loc.Name))">Details</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+<style>
+    .table a
+{
+    display:block;
+    text-decoration:none;
+}
+</style>
+
+
+@code {
+    private List<LocationDTO> Locations { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await LocationService.CheckStatusForLocationsInDb();
+        if (response.IsSuccessStatusCode)
+        {
+            await UpdateLocations();
+        }
+    }
+
+    private async Task AddLocation()
+    {
+        var city = await js.InvokeAsync<string>("prompt", "Provide city name to add");
+        var responseFromJson = await TemperatureService.CheckStatusForCityTemperature(city);
+        if (responseFromJson.IsSuccessStatusCode)
+        {
+            var responseFromDb = await LocationService.AddLocationToDb(city);
+            if (responseFromDb.IsSuccessStatusCode){
+                await TemperatureService.AddTemperatureForCityToDb(city);
+                await UpdateLocations();
+            }
+            else
+                await js.InvokeVoidAsync("alert", "Already in database");
+        }
+        else await js.InvokeVoidAsync("alert", "Wrong city name");
+    }
+    private void OpenDetails(string cityName)
+    {
+        navManager.NavigateTo($"dashboard/{cityName}");
+    }
+
+    private async Task UpdateLocations()
+    {
+        var data = await LocationService.GetLocationsFromDb();
+        Locations = data.ToList();
+        foreach(var item in Locations)
+        {
+            var tempreture = await TemperatureService.GetLastTemperatureForCity(item.Name);
+            item.LastTemperature = tempreture.LastTemperature;
+        }
+
+    }
+}
