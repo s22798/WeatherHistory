@@ -8,5 +8,6 @@ namespace WeatherHistory.Server.Services.Repositories
         Task AddNewTemperatureForCity(TemperatureDTO temp);
         Task<int> GetLocationIdByName(string cityName);
         Task<LastTempDTO> GetLastTemperatureForCity(string cityName);
+        Task<LastTempDateDTO> GetLastTempDateForCity(string cityName);
     }
 }

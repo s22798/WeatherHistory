@@ -31,10 +31,17 @@ namespace WeatherHistory.Server.Controllers
         }
 
         [HttpGet("last/{cityName}")]
-        public async Task<IActionResult> GetLastTemperatureForCity(string cityName)
+        public async Task<IActionResult> GetLastTemperatureForCity(string cityName, string search)
         {
-            var res = await _temperatureDbService.GetLastTemperatureForCity(cityName);
-            return Ok(res);
+            switch (search)
+            {
+                case "temp":
+                    return Ok(await _temperatureDbService.GetLastTemperatureForCity(cityName));
+                case "date":
+                    return Ok(await _temperatureDbService.GetLastTempDateForCity(cityName));
+                default:
+                    return BadRequest();
+            }
         }
     }
 }

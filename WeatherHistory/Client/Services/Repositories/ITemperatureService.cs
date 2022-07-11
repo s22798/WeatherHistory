@@ -9,5 +9,6 @@ namespace WeatherHistory.Client.Services.Repositories
         Task<TemperatureDTO> GetTemperatureForCity(string cityName);
         Task<HttpResponseMessage> CheckStatusForCityTemperature(string cityName);
         Task<LastTempDTO> GetLastTemperatureForCity(string cityName);
+        Task<LastTempDateDTO> GetLastResfreshForCity(string cityName);
     }
 }

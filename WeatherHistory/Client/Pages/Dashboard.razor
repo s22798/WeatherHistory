@@ -8,7 +8,7 @@
 
 <h3>Locations list</h3>
 <div style="float:right">
-     <button @onclick="@(()=> AddLocation())">Add location</button>
+     <button @onclick="@(async ()=> await AddLocation())">Add location</button>
 </div>
 @if (Locations == null)
 {
@@ -16,6 +16,7 @@
 }
 else
 {
+   <div style="float:right"><button @onclick="@(async() => await UpdateTemperatures())">Refresh</button></div>
     <table id="tabela" class="table table-bordered table-hover">
         <thead>
             <tr>
@@ -49,6 +50,8 @@ else
 
 @code {
     private List<LocationDTO> Locations { get; set; }
+    private DateTime LastUpdate { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         var response = await LocationService.CheckStatusForLocationsInDb();
@@ -77,6 +80,21 @@ else
     private void OpenDetails(string cityName)
     {
         navManager.NavigateTo($"dashboard/{cityName}");
+    }
+
+    private async Task UpdateTemperatures()
+    {
+        bool checker = false;
+        foreach(var item in Locations)
+        {
+            var date = await TemperatureService.GetLastResfreshForCity(item.Name);
+            if (DateTime.Now.Subtract(date.LastUpdateDate) >= TimeSpan.FromMinutes(10))
+                await TemperatureService.AddTemperatureForCityToDb(item.Name);
+            else checker = true;
+
+        }
+        if(checker==true) await js.InvokeVoidAsync("alert", "Some cites were updated recently");
+        await UpdateLocations();
     }
 
     private async Task UpdateLocations()

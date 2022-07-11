@@ -34,6 +34,13 @@ namespace WeatherHistory.Server.Services.Implementations
             await _weatherDbContext.SaveChangesAsync();
         }
 
+        public async Task<LastTempDateDTO> GetLastTempDateForCity(string cityName)
+        {
+            var id = await GetLocationIdByName(cityName);
+            var max = _weatherDbContext.Temperatures.Where(e => e.IdLocation == id).Max(e => e.Date);
+            return await _weatherDbContext.Temperatures.Where(e => e.Date == max).Select(e => new LastTempDateDTO { LastUpdateDate = e.Date }).FirstOrDefaultAsync();
+        }
+
         public async Task<LastTempDTO> GetLastTemperatureForCity(string cityName)
         {
             var id = await GetLocationIdByName(cityName);

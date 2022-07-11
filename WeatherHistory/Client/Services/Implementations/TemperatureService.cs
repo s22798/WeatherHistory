@@ -31,9 +31,15 @@ namespace WeatherHistory.Client.Services.Implementations
             return res;
         }
 
+        public async Task<LastTempDateDTO> GetLastResfreshForCity(string cityName)
+        {
+            var res = await _httpClient.GetStringAsync($"api/temperatures/last/{cityName}?search=date");
+            return JObject.Parse(res).SelectToken("").ToObject<LastTempDateDTO>();
+        }
+
         public async Task<LastTempDTO> GetLastTemperatureForCity(string cityName)
         {
-            var res = await _httpClient.GetStringAsync($"api/temperatures/last/{cityName}");
+            var res = await _httpClient.GetStringAsync($"api/temperatures/last/{cityName}?search=temp");
             return JObject.Parse(res).SelectToken("").ToObject<LastTempDTO>();
         }
 
